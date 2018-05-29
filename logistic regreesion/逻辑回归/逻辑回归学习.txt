@@ -1,0 +1,186 @@
+classify
+	分类问题
+	0:Negative class
+	1:Positive Class
+	
+	多分类问题
+	
+	
+	二分类问题开始
+	将已知数据分类 0 1
+	采用算法 线性回归
+	假设函数 
+	设置阈值 > 0.5 1
+	         < 0.5 0
+	所有的点 
+	对于分类问题应用线性回归并不是好办法
+	
+	还有一个有趣的事情:
+	classification： 0 or 1
+	but 假设函数可以 大于1 or 小于0
+
+	接下来使用逻辑回归算法进行分类
+	logistic regression 逻辑回归
+	实际上是一种分类算法
+	
+机器学习三要素 模型 策略 算法
+逻辑回归 假设函数模型
+	logistic regression model
+	want 0< hx < 1
+	
+	逻辑回归的假设函数的表达式是什么
+	定义逻辑回归的假设函数的公式是什么
+	
+	逻辑回归
+	假设函数 : $h\theta(x) = \theta^T x$
+	逻辑回归的目标是分类 输出 0 or 1
+		引入 sigmoid function
+		即:  $h\theta(x) = g(\theta^T x)$
+		$g(z) = \frac {1}{1+\rho^(-z)}$
+		模型的解释
+		对于新输入样本x的y等于1的概率的估计值
+		即为: $g(z) = \frac {1}{1+\rho^(-\theta^T x)}$
+		
+		也可以用概率公式来解释
+		$p(y=1|x;\theta)  = g(z)
+		$p(y=0|x;\theta) + p(y=1|x;\theta) = 1$
+		$p(y=0|x; \theta) = 1 - p(y=1|x;\theta)$
+		
+	总结: 
+		逻辑回归的假设函数是什么
+		定义逻辑回归的假设函数的公式是什么
+
+		
+决策边界：假设函数在计算什么
+目标:预测分类问题 
+suppose predict "y=1" if $h\theta(x) >= 0.5
+				即 $\theta^T x >= 0$
+				"y=0" if $h\theta(x) < 0.5
+				即 $\theta^T x < 0$
+				
+$h\theta(x) = g(\theta^T x) = p(y=1|x;\theta)$
+g(z) = \frac{1}{1+e^{-z}}$
+
+什么是决策边界
+	决策边界时假设函数的一个属性 包含$\theta$数据集 分平面
+	一旦确定$\theta$参数 决策边界就确定
+	
+	决策边界可以是线性也可以是非线性
+	并不是用训练集来训练$\theta$ 而是拟合$\theta$
+	
+总结: 	什么范围内的假设函数可以选择
+		如何确定决策边界
+
+
+
+逻辑回归的代价函数
+traning set ${(x^{(1)}, y^{(1)}), (x^{(2)}, y^{(2)}), ..., (x^{(m)}, y^{(m)})}
+m examples x 属于 [x_0, x_1,...,x_n].T $R^{n+1}$ x_0=1 y属于{0,1}
+逻辑回归的假设函数为:$h\theta(x) = \frac{1}{1+e^{-z}} = \frac{1}{1+e^{-\theta^T x}}$
+线性回归的代价函数
+linear regression cost function : $J(\theta) = \frac{1}{m} \sigma\limits_{i=1}^{m} \frac{1}{2}(h\theta(x^{(i)}) - y^{(i)})^2 $
+可以推导为:$Cost(h\theta(x^{(i)}),y^{(i)}) = \frac{1}{2}(h\theta(x^{(i)})-y^{(i)})^2$
+			即为: $Cost(h\theta(x), y) = \frac{1}{2}(h\theta(x) - y)^2$
+			
+			由于$h\theta(x)$为复杂线性函数 开平方推导会造成非凸函数以及局部优化
+			
+	因此 期望是 凸函数 
+	可得逻辑回归的代价函数为
+	$\begin{equation}
+		$Cost(h\theta(x), y) = \left\{
+             \begin{array}{lcl}
+             {-log(h\theta(x))} &\text{if} &\eq 1 \\
+             {-log(h\theta(x))} &\text{if} &\eq 0
+             \end{array}  
+        \right.
+\end {equation}$
+	
+	特性:当y=1时 if $h\theta(x)=1$ cost=0
+		else:$h\theta(x)=0$ 代价函数无穷大 
+		
+		当y=0时 if $h\theta(x)=1$ 代价函数无穷大
+		else cost=0
+		
+		
+Simplified cost function and gradient descent
+化简代价函数及梯度下降法
+------问题 如何使用梯度下降法拟合函数
+------线性回归和逻辑回归是一个梯度下降算法么
+------如何检测梯度下降 确保他是收敛的 
+
+将代价函数再化简
+		$\J(\theta) = \frac{1}{m} \sigma\limits_{i=1}^{1}Cost(h\theta(x^{(i)}), y^{(i)})$
+		
+		
+	$\begin{equation}
+		$Cost(h\theta(x), y) = \left\{
+             \begin{array}{lcl}
+             {-log(h\theta(x))} &\text{if} &\eq 1 \\
+             {-log(h\theta(x))} &\text{if} &\eq 0
+             \end{array}  
+        \right.
+\end {equation}$
+
+Note! y=0 or 1 always
+
+Cost(h\theta(x), y) = -ylog(h\theta(x)) - (1-y)log(1-h\theta(x))$
+即：$j(\theta) 	= \frac{1}{m}Cost(h\theta(x^{(i)}), y^{(x)})
+				= -\frac{1}{m}[\sigma\limits_{i=1}^{m}y^{(i)}log(h\theta(x^{(i)})) + (1-y^{(i)})log(1-h\theta(x^{(i)}))$
+				
+问题:如何不断的拟合$\theta$ 期望为$\min J(\theta)$ 最小化代价函数 --- 使得拟合模型
+易于分类 
+目标 对新的输入变量x输出正确的预测
+下一步目标 如何最大限度最小化代价函数 --- 向量化实现
+采用梯度下降法
+	$j(\theta)= -\frac{1}{m}[\sigma\limits_{i=1}^{m}y^{(i)}log(h\theta(x^{(i)})) + (1-y^{(i)})log(1-h\theta(x^{(i)}))$
+	want $\min J(\theta)$:
+		$repeat{
+		\theta_j := \theta_j - \alpha \sigma\limits_{i=1}^{n} (h\theta(x^{(i)}) - y^{(i)})x^{(i)}$
+		}$
+		
+	问题: 线性回归和逻辑回归是一个梯度下降算法么
+		完全不是 两者的假设函数不同
+	问题: 如何监测梯度下降 确保它收敛
+		带入了代价函数 偏导数 实质上 会想最优或者局部最优点梯度下降
+		
+		
+	小结: 	假设函数 sigmoid
+			代价函数 化简 -- 非凸性函数转化为凸性函数
+			梯度下降法
+			
+	
+高级优化算法 optimization algorithm
+$cost function J(\theta)$ 代价函数
+$want \min J(\theta)$  目标 最小化代价函数
+给定$\theta$ 用计算机实现计算
+---$\theta$ 代价函数
+---$代价函数的偏导数  确保收敛性---计算代价函数 及代价函数的收敛性
+
+梯度下降法
+	$repeat{
+	\theta_j = \theta_j - \alpha \frac{\partial}{\partial \theta_j} J(\theta)
+	}$
+	$\frac{\partial}{\partial \theta_j} J(\theta) = \sigma\limits_{i=1}^{m}(h\theta(x^{(i)}) - y^{(i)})x_j^{(i)}$
+	除了梯度下降法 还有	
+					共轭梯度法 conjugate gradient
+					变尺度法 BFGS	
+					限制尺度法 L-BFGS
+					
+		这些算法都是对代价函数的不同优化
+		优点:	不需要手动计算学习速率
+				收敛速度快于梯度下降法
+		缺点:
+				过于复杂
+				
+				
+obtave 如何使用梯度下降法计算
+
+
+多分类问题
+	本质上来说 求得是 $\max p(y=i|x_i, \theta) i=1,2,3....$
+	概率最大化问题
+	
+	
+				
+						
+		

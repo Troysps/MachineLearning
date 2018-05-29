@@ -1,0 +1,115 @@
+SMO算法原理及实现
+支持向量机的学习问题本质上是求解凸二次规划问题
+SMO算法 序列最小最优化算法就是求解该问题的代表性算法
+SMO算法 解决的凸二次规划的对偶问题:
+$\min\limits_{a} \frac{1}{2}\sum\limits_{i=1}^{N}\sum\limits_{j=1}^{N}\alpha_i\alpha_j y_iy_jK(x_i, x_j) - \sum\limits_{i=1}^{N}\alpha__i\\ s.t. \sum\limits_{i=1}^{N}\alpha_iy_i=0 \\ 0\le \alpha_i \le C, i=1,2,...,N$
+问题思考:已知变量 x 输入空间 y 输入空间 -- 即训练集中数据集
+求解变量实质上为拉格朗日乘子 一个变量$\alpha_i$对应与一个样本点(x_i, y_i),变量的总数等于训练样本容量N
+
+SMO算法 -- 属于一种启发式算法
+	其基本思路为: 
+	1.如果所有的变量的解都满足最优化问题的KKT条件 那么这个最优化问题的解就得到了
+	2.否则选择两个变量 固定其他变量(任意选择两个拉格朗日乘子) 针对这两个变量构建一个二次规划问题
+	这个二次规划问题关于这两个变量的解应该更加接近二次规划问题的解 使得二次规划问题的目标函数值变得更小
+	3.此时: 子问题有两个变量 一个是违反KKT条件最严重的一个 一个是由约束条件自动确定的
+	
+	注意: 选择两个变量实质上只有一个自由变量
+	因为等式约束:
+		$\sum\limits_{i=2}^{N} \alpha_i y_i = 0$
+		
+		
+重点:SMO算法实质上包含两个部分
+	1. 求解两个变量二次规划的解析方法
+	2.选择变量的启发式方法
+
+1.两个变量二次规划的求解方法
+	假设选择的两个变量是 $\alpha_1, \alpha_2$ 其他$\alpha_i$是固定的
+	
+	带入到凸二次规划的对偶问题中, 可以推导为
+	$\min\limits_{alpha_1, \alpha_2} = \frac{1}{2}K_11\alpha_1^2 + \frac{1}{2}K_22\alpha_2^2 +y_1y_2K_{12}\alpha_1\alpha_2 - (\alpha_1+alpha_2) + y1alpha_1\sum\limits_{i=3}^N y_i \alpha_iKi1 + y_2\alpha_2\sum\limits_{i=3}^{N} y_i\alpha_iK_{12} \\ s.t. a_1y_1 + a_2y_2 = -\sum\limits_{i=3}^{N}y_i\alpha_i = \xi \\ 0\le \alpha_i \le C, i=1,2$
+	$其中K_ij = K(x_i, x_j), i,j=1,2,..,N, \xi 为常数$
+	
+	为了求解两个变量的二次规划问题, 首先分析约束条件 然后再次约束条件中求极小值
+	
+	如图：
+		假设问题的初始解为$alpha_1^{old}, \alpha_2^{old}$, 最优解为$alpha_1^{new}, \alpha_2^{new}$
+		该条件需要满足约束条件, 并假设沿着约束方向未经剪辑时$\alpha_2$的最优解为$\alpha_2^{new}$$
+		
+	即:$L \le \alpha_2^{new} \le H$
+		当 $y_1 != y_2$时, 异侧相减
+		$L = max(0, \alpha_2^{old} - \alpha_1^{old}), H = min(C, C+\alpha_2^{old} - \alpha_1^{old}$
+		当 $y_1 == y_2时$, 同侧相加
+		$L = max(0, \alpha_2^{old} + \alpha_1^{old} - C), H = min(C, \alpha_2^{old} + \alpha_1^{old})$
+		
+		
+	满足约束条件之后, 沿着约束方向更新$\alpha_2$
+	首先求$\alpha_1^{old}, \alpha_2^{old}$的预测值 与实际值之间的误差
+	E_i = g(x_i) - y_i = \sum\limits_{j=1}^{N}\alpha_jy_jK(x_j, x_i)+b)-y_i, i=1,2$
+	
+	定理: 最优化问题沿约束方向未经剪辑时的解是:
+		$\alpha_2^{new} = \alpha_2^{old} + \frac{y_2(E_1 - E_2)}{\eta} \\ 其中: \eta = K_11 + K_22 - 2K_12 = ||K(x_1) - K(x_2)||^2$
+		
+2.变量的选择方式
+	SMO算法在每个子问题中选择两个变量优化 其中至少一个变量是违反KKT条件的
+	1.第1个变量的选择
+		选择第1个变量的过程为外层循环 外层循环在训练样本中选取违反KKT条件最严重的样本点
+		并将其对应的变量作为第1个变量 --> 即:检验训练样本点$(x_i, y_i)$是否满足KKT条件
+		KKT条件为:
+			$\alpha_i = 0 ==> y_ig(x_i) \ge 1 \\ 0 < \alpha_i < C ===> y_ig(x_i)=1 \\ \alpha_i = C ==> y_ig(x_i) \le 1$
+			其中$g(x_i) = \sum\limits_{j=1}^{N}\alpha_jy_jK(x_i, x_j) + b$
+	2.第2个变量的选择
+		选择第2个变量为内层循环 假设在外层循环中以及找到第一个变量$\alpha_1$,现在要在内层循环中找到第2个变量，第二个变量的选择标准是
+		希望能使$\alpha_2$有足够的变化
+		使得$alpha_2$的取值满足约束条件,由之前推导可得更新$alpha_2$条件是:1.满足二次规划问题 2.根据$|E_1 -E_2|$更新$\alpha_2$
+		
+		伪代码基本逻辑为:
+			1.如果内层循环通过以上方法选择的$\alpha_2$不能使得目标函数有足够的下降 那么采用启发式规则继续选择$\alpha2$
+			2.遍历在间隔边界上的支持向量点 依次将其对应的变量作为$\alpha_2$试用 直到目标函数有足够的下降
+			3.若是仍然找不到合适的$\alpha_2$, 则放弃第一个$alpha_1$,再通过外层循环找另外的$alpha_1$
+			
+	3.计算阈值b与差值$E_i$
+	每次完成两个变量的优化后 都要重新计算阈值b, 由KKT条件可知
+	$\sum\limits_{i=1}^{N}\alpha_iy_iK_{i1} + b = y_1$
+	于是:
+	$b_1^{new} = y_1 - \sum\limits_{i=3}^{N}\alpha_iy_iK_{i1} - \alpha_1^{new}y_1K11 - \alpha_2^{new}y_2K_{21}$
+	由$E_1$的定义式有:
+	$E_1 = \sum\limits_{i=3}^{N}\alpha_iy_iK_i1 + \alpha_1^{old}y_1K_11 + \alpha_2^{old}y_2K_21 + b^{old} - y_1$
+	即可得:
+	$b_1^{new} = -E_1 - y_1K_{11}(\alpha_1^{new} - \alpha_1^{old} - y_2K_{21}(\alpha_2^{new} - \alpha_2^{old})+b^{old}$
+	
+		
+	
+		
+		
+	
+		
+	
+	
+
+
+	
+	
+	
+	
+	
+	
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
