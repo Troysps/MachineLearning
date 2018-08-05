@@ -133,7 +133,7 @@ def transferToVec(data, vocableList):
 # step4 随机的抽取部分样本集 转为向量 并计算先验概率 后验概率
 def trainNB(trainMat, trainClass):
     """
-    计算先验概率和条件概率
+    计算先验概率和条件概率  基于贝叶斯估计
     :param trainMat: 训练集输入空间 X
     :param trainClass: 训练集输出空间 Y
     :return p0:先验概率 非垃圾邮件概率
@@ -156,19 +156,20 @@ def trainNB(trainMat, trainClass):
     for index in range(sampleSize):
         if trainClass[index] == 0:
             p0Vec += trainMat[index]
-            p0Nums += np.sum(trainMat)
+            p0Nums += np.sum(trainMat[index])
 
 
         elif trainClass[index] == 1:
             p1Vec += trainMat[index]
-            p1Nums += np.sum(trainMat)
+            p1Nums += np.sum(trainMat[index])
 
     # p1Con p0Con
+    print('p0Nums:{}, p1Nums:{}'.format(p0Nums, p1Nums))
     p0Con = np.log10(p0Vec / p0Nums)
     p1Con = np.log10(p1Vec / p1Nums)
 
-    print('p0Con---------------', p0Con)
-    print('p1Con---------------', p1Con)
+    # print('p0Con---------------', p0Con)
+    # print('p1Con---------------', p1Con)
 
     return p0Con, p1Con, p0Ham, p1Spam
 
@@ -213,10 +214,11 @@ def main():
     # print(dataToList(content))
     dataSet, classLabel = loadDataSet()
     vocableList = createVocableList(dataSet)
+    print("vocableList", vocableList)
 
 
-    # vecList0 = transferToVec(dataSet[0], vocableList)
-    # print(vecList0)
+    vecList0 = transferToVec(dataSet[0], vocableList)
+    print(vecList0)
 
     """
     # 留存交叉验证
@@ -238,27 +240,27 @@ def main():
 
     print('trainIndex------', traningIndex)   # 40个样本训练集
     print('testIndex-------', testIndex)      # 10个样本测试集
-
-
-    # 使用训练集训练 分类器
+    #
+    #
+    # # 使用训练集训练 分类器
     trainMat = []
     trainClass = []
     for index in traningIndex:
         print('traningIndex', index)
         trainMat.append(transferToVec(dataSet[index], vocableList))
         trainClass.append(classLabel[index])
-
-
+    #
+    #
     print('--'*50 + '训练集'+'--'*50)
     print(np.shape(trainMat))
-    # print(trainMat)
+    print(trainMat)
 
     print('--'*50 + '训练集类标记' + '--'*50)
     print(np.shape(trainClass))
     print(trainClass)
     print(sum(trainClass))
-
-    # 计算先验概率 条件概率
+    #
+    # # 计算先验概率 条件概率
     p0Con, p1Con, p0Ham, p1Spam = trainNB(trainMat, trainClass)
 
     # 留存数据作为测试数据集
